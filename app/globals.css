@@ -289,3 +289,48 @@ body {
   50%     { transform: translateY(-6px) rotate(1deg); }
 }
 .float-badge { animation: float-badge 4s ease-in-out infinite; }
+
+/* ── Mobile Performance Optimizations ────────────── */
+@media (max-width: 767px) {
+  /* Disable heavy CSS aurora animations on mobile */
+  .aurora-1, .aurora-2, .aurora-3 { animation: none !important; }
+  /* Reduce aurora blur to save compositing cost */
+  .bg-orb { filter: blur(80px) !important; -webkit-filter: blur(80px) !important; }
+  /* Disable shimmer border animation */
+  .shimmer-border::after { animation: none; background: linear-gradient(90deg, rgba(139,92,246,0.3), rgba(6,182,212,0.3)); }
+  /* Disable floating badge bob */
+  .float-badge { animation: none; }
+  /* Simplify noise texture */
+  .noise::after { display: none; }
+  /* Disable glow-card mouse pseudo-element entirely */
+  .glow-card::before { display: none; }
+  /* Reduce btn-glow blur */
+  .btn-glow::before { filter: blur(12px); opacity: 0.2; }
+  /* Disable 3D transforms on hero letters */
+  .hero-letter { transform: none; opacity: 1; }
+  /* Lighter review card hover */
+  .review-card:hover { transform: none; }
+  /* Disable grid background on mobile */
+  .grid-pattern { display: none; }
+}
+
+/* ── Tablet partial optimizations ────────────────── */
+@media (max-width: 1023px) and (min-width: 768px) {
+  .bg-orb { filter: blur(100px) !important; -webkit-filter: blur(100px) !important; }
+  .noise::after { opacity: 0.005; }
+}
+
+/* ── Respect reduced motion preference ───────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .marquee-track { animation: none; }
+  .scroll-indicator { animation: none; }
+}
+
+/* ── GPU hints for animated elements ─────────────── */
+.bg-orb { will-change: transform, opacity; }
+.hero-letter { will-change: transform, opacity; }

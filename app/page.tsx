@@ -210,7 +210,8 @@ export default function Home() {
     const colors = ["#8b5cf6","#3b82f6","#06b6d4","#d946ef","#fbbf24","#34d399","#f472b6","#60a5fa","#a78bfa","#22d3ee"];
     const shapes = ["circle","rect","rect","circle","rect"];
     const pieces: HTMLDivElement[] = [];
-    for (let i = 0; i < 55; i++) {
+    const pieceCount = window.innerWidth < 768 ? 20 : 55;
+    for (let i = 0; i < pieceCount; i++) {
       const el = document.createElement("div");
       const shape = shapes[i % shapes.length];
       el.style.position = "fixed";
@@ -231,8 +232,9 @@ export default function Home() {
     gsap.to(pieces, { y: `+=320`, opacity: 0, duration: 1.1, ease: "power2.in", delay: 0.45, onComplete: () => pieces.forEach((el) => el.remove()) });
   }
 
-  /* ── Mouse-follow glow card handler ──────── */
+  /* ── Mouse-follow glow card handler (desktop only) ── */
   const handleCardMouse = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (typeof window !== "undefined" && window.matchMedia?.("(pointer:coarse)").matches) return;
     const el = e.currentTarget;
     const rect = el.getBoundingClientRect();
     el.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
@@ -322,18 +324,25 @@ export default function Home() {
       /* Scroll indicator */
       tl.fromTo(".hero-scroll", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.1");
 
-      /* Continuous aurora float */
-      gsap.to(".bg-orb", { y: (i) => (i % 2 === 0 ? -35 : 35), x: (i) => (i % 2 === 0 ? 25 : -25), duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut", stagger: 0.5 });
+      /* Continuous aurora float — desktop only for performance */
+      if (window.matchMedia("(min-width: 768px)").matches) {
+        gsap.to(".bg-orb", { y: (i) => (i % 2 === 0 ? -35 : 35), x: (i) => (i % 2 === 0 ? 25 : -25), duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut", stagger: 0.5 });
+      }
     }, rootRef);
     return () => ctx.revert();
   }, []);
 
-  /* ── Floating particles ──────────────────── */
+  /* ── Floating particles (desktop only) ───── */
   useEffect(() => {
     const c = particleRef.current;
     if (!c) return;
+    /* Skip particles entirely on mobile to save GPU */
+    const isSmall = window.matchMedia("(max-width: 767px)").matches;
+    if (isSmall) return;
+    const isTablet = window.matchMedia("(max-width: 1023px)").matches;
+    const count = isTablet ? 12 : 20;
     const els: HTMLDivElement[] = [];
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < count; i++) {
       const el = document.createElement("div");
       el.style.position = "absolute";
       el.style.borderRadius = "50%";
@@ -344,6 +353,7 @@ export default function Home() {
       el.style.background = `hsla(${hue}, 70%, 70%, ${0.06 + Math.random() * 0.12})`;
       el.style.left = `${Math.random() * 100}%`;
       el.style.top = `${Math.random() * 100}%`;
+      el.style.willChange = "transform";
       c.appendChild(el);
       els.push(el);
       gsap.to(el, { y: -30 - Math.random() * 60, x: (Math.random() - 0.5) * 40, duration: 6 + Math.random() * 8, repeat: -1, yoyo: true, ease: "sine.inOut", delay: Math.random() * 6 });
@@ -606,6 +616,27 @@ export default function Home() {
               An intelligent educational platform that bridges the gap between students and teachers
               — making learning personalized, efficient, and AI-powered.
             </p>
+          </div>
+
+          {/* ── Project Screenshot Showcase ──── */}
+          <div className="project-card mb-10 overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.02] p-1.5 sm:p-2 backdrop-blur-sm">
+            <div className="relative aspect-video overflow-hidden rounded-2xl">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/Poster.png"
+                alt="BrainFuel AI — Smart Notes. Smarter Prep. Powered by AI"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030014]/70 via-transparent to-[#030014]/10" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 lg:p-8">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-3 sm:px-4 py-1 sm:py-1.5 text-[10px] sm:text-xs font-medium text-white/90">
+                  <span className="pulse-live h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Live Demo at LJ Innovation Village 2026
+                </div>
+                <h3 className="mt-2 sm:mt-3 text-lg sm:text-xl lg:text-2xl font-bold text-white/95">BrainFuel AI Platform</h3>
+                <p className="mt-1 text-xs sm:text-sm text-white/60 max-w-lg">Built with Django &bull; Powered by AI &bull; Smart Notes &bull; Smarter Prep</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
