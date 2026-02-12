@@ -1,99 +1,161 @@
-# Life Without ChatGPT — Reviews Website
+# BrainFuel - AI-Powered Learning Platform
 
-Slogan event feedback website for:
-
-**“Life Without ChatGPT Is Like The Body Without A Soul”**
-
-Collects student/teacher reviews (name + role + rating + feedback) and shows a realtime rating graph + recent feedback.
-
-![Screenshot](./Screenshot.png)
+## Overview
+BrainFuel is an AI-powered educational platform built with Django that connects students with teachers. The platform facilitates personalized learning experiences through course materials, study resources, and interactive features.
 
 ## Features
+- **User Authentication**: Secure login, registration, and profile management
+- **Role-Based Access**: Separate interfaces for students and teachers
+- **Course Management**: Teachers can create and manage courses
+- **Study Materials**: Students can access and create study materials
+- **Payment Integration**: Subscription plans for premium content
+- **Responsive Design**: Modern UI that works across devices
 
-- **No auth**: anyone can submit feedback.
-- **Supabase DB**: stores reviews.
-- **Realtime updates**: new reviews appear live.
-- **GSAP animations** + 5★ confetti.
-- **Filters**: All/Students/Teachers + star filter.
-- **Featured review**: latest 5★ teacher review.
-- **Toasts**: success/error messages (Sonner).
-- **Sound toggle**: optional star click sound.
+## Project Structure
+- **auth_app**: Handles user authentication and profile management
+- **core**: Core functionality including landing page and common features
+- **payment**: Subscription plans and payment processing
+- **student**: Student-specific features and dashboard
+- **teacher**: Teacher-specific features and course management
+- **templates**: HTML templates for all app components
+- **static**: CSS, JavaScript, and image assets
 
-## Tech Stack
+## Technologies Used
+- Django (Python web framework)
+- SQLite (Database)
+- HTML/CSS/JavaScript (Frontend)
+- Bootstrap (UI Framework)
 
-- Next.js (App Router)
-- React
-- Tailwind CSS
-- Supabase
-- GSAP
-- Sonner (toasts)
+## Installation
+1. Clone the repository
+    ```bash
+    git clone https://github.com/webKing021/BrainFuel-AI-Django.git
+    ```
 
-## Setup
+2. To create a virtual environment :
+    ```bash
+    python -m venv .venv 
+    ```
 
-1) Install dependencies
+3. To activate virtual environment : 
+    ```bash
+    .venv\Scripts\activate 
+    ```
 
-```bash
-npm install
+4. To install Django :
+    ```bash
+    py -m pip install Django
+    ```
+
+5. To create a Django project :
+    ```bash
+    django-admin startproject <PROJECT_NAME>
+    cd .\Krutarth\
+    ```
+
+6. To run the created project :
+    ```bash
+    python manage.py runserver <PORT_NUMBER>
+    ```
+
+7. To create an application : 
+    ```bash
+    django-admin startapp <APP_NAME>
+    ```     
+
+8. To connect to MySQL database
+    ```bash
+    pip install mysqlclient
+    ```
+
+9. To create migration
+    ```bash
+    py manage.py makemigrations
+    ```
+
+10. To migrate tables
+    ```bash
+    py manage.py migrate
+    ```
+
+11. To create superuser
+    ```bash
+    py manage.py createsuperuser
+    ```
+
+---
+
+## Email (Mailtrap) Setup
+
+Use Mailtrap to send development emails (verification, password reset) without sending real emails.
+
+1) Create a free Mailtrap account and get your SMTP credentials (Username and Password) from Inbox > SMTP Settings.
+
+2) Add credentials as environment variables (recommended):
+
+   - Windows (PowerShell):
+     ```powershell
+     setx MAILTRAP_USER "<your_username>"
+     setx MAILTRAP_PASS "<your_password>"
+     ```
+
+3) Update `BrainFuel/BrainFuel/settings.py` to use the variables:
+
+   ```python
+   # Email (Mailtrap)
+   EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+   EMAIL_HOST = 'sandbox.smtp.mailtrap.io'
+   EMAIL_PORT = '2525'
+   EMAIL_USE_TLS = True
+   EMAIL_HOST_USER = <your key>
+   EMAIL_HOST_PASSWORD = <your key>
+   DEFAULT_FROM_EMAIL = 'no-reply@brainfuel.app'
+   ```
+
+4) Test email sending in Django shell:
+
+   ```bash
+   py manage.py shell
+   >>> from django.core.mail import send_mail
+   >>> send_mail('Test Email', 'Hello from BrainFuel!', None, ['you@example.com'])
+   1
+   ```
+
+Open your Mailtrap Inbox to see the message.
+
+---
+
+## Static and Media Files (Django settings)
+
+Add these to `BrainFuel/BrainFuel/settings.py` to serve static assets and user uploads during development:
+
+```python
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # used by collectstatic in production
+
+# Media files (User uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 ```
 
-2) Create `.env.local` (not committed)
+Notes:
+- __Development__: Ensure your root `urls.py` serves media when `DEBUG=True`:
+  ```python
+  from django.conf import settings
+  from django.conf.urls.static import static
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-```
+  urlpatterns = [
+      # ... your URLs here ...
+  ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  ```
+- __Production__: Configure your web server (e.g., Nginx) to serve `/static/` from `STATIC_ROOT` and `/media/` from `MEDIA_ROOT`.
 
-3) Create the Supabase table + policies (SQL)
+## Database
+The project includes a SQL dump file in the Database folder that can be used to restore the database state.
 
-```sql
-create table if not exists public.reviews (
-  id uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now(),
-  name text not null,
-  role text not null check (role in ('student', 'teacher')),
-  rating int not null check (rating >= 1 and rating <= 5),
-  feedback text not null
-);
-
-create index if not exists reviews_created_at_idx on public.reviews (created_at desc);
-create index if not exists reviews_rating_idx on public.reviews (rating);
-
-alter table public.reviews enable row level security;
-
-create policy "Public can read reviews"
-on public.reviews
-for select
-to anon
-using (true);
-
-create policy "Public can insert reviews"
-on public.reviews
-for insert
-to anon
-with check (true);
-```
-
-4) Enable Supabase Realtime
-
-- Supabase Dashboard → **Database** → **Replication / Realtime**
-- Enable realtime for `public.reviews`
-
-## Run
-
-```bash
-npm run dev
-```
-
-Open: http://localhost:3000
-
-## Scripts
-
-- `npm run dev`
-- `npm run build`
-- `npm run start`
-- `npm run lint`
-
-## Credits
-
-- Team: **Het Patel**, **Jenil Kukadiya**, **Krutarth Raychura**
-- Designed and developed by **Krutarth Raychura**
+## License
+MIT

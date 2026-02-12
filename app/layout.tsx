@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Life Without ChatGPT — Reviews",
-  description: "Collect live student feedback for the slogan event and view realtime star ratings.",
+  title: "BrainFuel AI — Smart Notes. Smarter Prep. | LJ Innovation Village 2026",
+  description:
+    "Live feedback for BrainFuel AI project presentation at LJ Innovation Village 2026. Rate and review our AI-powered educational platform.",
   icons: {
     icon: [{ url: "/icon.ico?v=3", type: "image/x-icon" }],
     shortcut: [{ url: "/icon.ico?v=3", type: "image/x-icon" }],
