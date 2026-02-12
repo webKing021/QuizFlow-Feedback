@@ -121,6 +121,14 @@ export default function Home() {
   const particleRef = useRef<HTMLDivElement>(null);
   const cursorGlowRef = useRef<HTMLDivElement>(null);
 
+  /* ── Device detection (stable across renders) ── */
+  const isMobile = useRef(false);
+  const isDesktop = useRef(true);
+  useEffect(() => {
+    isMobile.current = window.matchMedia("(max-width: 767px)").matches;
+    isDesktop.current = window.matchMedia("(pointer:fine)").matches && window.innerWidth >= 1024;
+  }, []);
+
   /* ── State ───────────────────────────────── */
   const [name, setName] = useState("");
   const [role, setRole] = useState<"student" | "teacher">("student");
@@ -136,8 +144,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [hoverRating, setHoverRating] = useState(0);
 
-  /* ── Typewriter ──────────────────────────── */
-  const { displayed: tagline, done: taglineDone } = useTypewriter("Smart Notes. Smarter Prep.", 70, 2000);
+  /* ── Typewriter (delay aligned with hero timeline) ── */
+  const { displayed: tagline, done: taglineDone } = useTypewriter("Smart Notes. Smarter Prep.", 70, 1200);
 
   /* ── Computed ─────────────────────────────── */
   const distribution = useMemo(() => {
@@ -294,39 +302,41 @@ export default function Home() {
     return () => window.removeEventListener("mousemove", onMove);
   }, []);
 
-  /* ── Hero entrance — letter-by-letter title ── */
+  /* ── Hero entrance ──────────────────────── */
   useEffect(() => {
     if (!rootRef.current) return;
+    const mobile = isMobile.current;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      /* Aurora orbs */
-      tl.set(".bg-orb", { opacity: 0, scale: 0.8 }).to(".bg-orb", { opacity: 1, scale: 1, duration: 1.6, stagger: 0.15, ease: "power2.out" });
+      if (mobile) {
+        /* ── MOBILE: fast, lightweight, no 3D transforms ── */
+        tl.set(".bg-orb", { opacity: 1 });
+        tl.fromTo(".hero-badge", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, 0);
+        /* Fade in title as a whole block instead of per-letter */
+        tl.set(".hero-letter", { opacity: 1, y: 0, rotateX: 0 });
+        tl.fromTo("h1", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, 0.15);
+        tl.fromTo(".hero-tagline-area", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.35);
+        tl.fromTo(".hero-desc", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.5);
+        tl.fromTo(".hero-cta-group", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 }, 0.65);
+        tl.fromTo(".hero-stats", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 0.8);
+        tl.set(".hero-scroll", { opacity: 1 });
+        /* Total: ~1.1s — fast and snappy */
+      } else {
+        /* ── DESKTOP: full cinematic entrance ── */
+        tl.set(".bg-orb", { opacity: 0, scale: 0.8 })
+          .to(".bg-orb", { opacity: 1, scale: 1, duration: 1.2, stagger: 0.1, ease: "power2.out" });
+        tl.fromTo(".hero-badge", { y: 20, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "-=0.8");
+        tl.to(".hero-letter", { y: 0, opacity: 1, rotateX: 0, duration: 0.5, stagger: 0.03, ease: "back.out(1.4)" }, "-=0.3");
+        tl.fromTo(".hero-tagline-area", { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.15");
+        tl.fromTo(".hero-desc", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2");
+        tl.fromTo(".hero-cta-group", { y: 10, opacity: 0, scale: 0.97 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.5)" }, "-=0.15");
+        tl.fromTo(".hero-stats", { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, "-=0.1");
+        tl.fromTo(".hero-scroll", { opacity: 0 }, { opacity: 1, duration: 0.4 }, "-=0.05");
+        /* Total: ~2.8s — polished without dragging */
 
-      /* Badge */
-      tl.fromTo(".hero-badge", { y: 20, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, "-=1.0");
-
-      /* Letters stagger */
-      tl.to(".hero-letter", { y: 0, opacity: 1, rotateX: 0, duration: 0.6, stagger: 0.035, ease: "back.out(1.4)" }, "-=0.5");
-
-      /* Tagline area */
-      tl.fromTo(".hero-tagline-area", { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, "-=0.2");
-
-      /* Description */
-      tl.fromTo(".hero-desc", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.65 }, "-=0.3");
-
-      /* CTA buttons */
-      tl.fromTo(".hero-cta-group", { y: 15, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.5)" }, "-=0.2");
-
-      /* Stats bar */
-      tl.fromTo(".hero-stats", { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, "-=0.2");
-
-      /* Scroll indicator */
-      tl.fromTo(".hero-scroll", { opacity: 0 }, { opacity: 1, duration: 0.6 }, "-=0.1");
-
-      /* Continuous aurora float — desktop only for performance */
-      if (window.matchMedia("(min-width: 768px)").matches) {
-        gsap.to(".bg-orb", { y: (i) => (i % 2 === 0 ? -35 : 35), x: (i) => (i % 2 === 0 ? 25 : -25), duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut", stagger: 0.5 });
+        /* Continuous aurora float */
+        gsap.to(".bg-orb", { y: (i) => (i % 2 === 0 ? -25 : 25), x: (i) => (i % 2 === 0 ? 18 : -18), duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut", stagger: 0.4 });
       }
     }, rootRef);
     return () => ctx.revert();
@@ -364,39 +374,70 @@ export default function Home() {
   /* ── ScrollTrigger for all sections ──────── */
   useEffect(() => {
     if (!rootRef.current) return;
+    const mobile = isMobile.current;
     const ctx = gsap.context(() => {
+      /* Shared config: shorter on mobile */
+      const dur = mobile ? 0.5 : 0.8;
+      const stPct = mobile ? "top 92%" : "top 85%";
+
       /* Section headers */
       gsap.utils.toArray<HTMLElement>(".section-heading").forEach((el) => {
-        gsap.fromTo(el, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 88%" } });
+        gsap.fromTo(el, { y: mobile ? 15 : 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: dur, ease: "power3.out", scrollTrigger: { trigger: el, start: stPct } });
       });
 
-      /* Project cards */
-      gsap.fromTo(".project-card", { y: 60, opacity: 0, rotateX: 8 }, { y: 0, opacity: 1, rotateX: 0, duration: 1, stagger: 0.2, ease: "power3.out", scrollTrigger: { trigger: ".project-section", start: "top 82%" } });
+      /* Project cards — no rotateX on mobile */
+      gsap.fromTo(".project-card",
+        { y: mobile ? 20 : 50, opacity: 0, ...(mobile ? {} : { rotateX: 6 }) },
+        { y: 0, opacity: 1, rotateX: 0, duration: mobile ? 0.5 : 0.8, stagger: mobile ? 0.1 : 0.15, ease: "power3.out",
+          scrollTrigger: { trigger: ".project-section", start: stPct } });
 
       /* Feature items */
-      gsap.fromTo(".feature-item", { y: 30, opacity: 0, x: -20 }, { y: 0, opacity: 1, x: 0, duration: 0.7, stagger: 0.1, ease: "power3.out", scrollTrigger: { trigger: ".features-grid", start: "top 82%" } });
+      gsap.fromTo(".feature-item",
+        { y: mobile ? 12 : 25, opacity: 0 },
+        { y: 0, opacity: 1, duration: mobile ? 0.35 : 0.6, stagger: mobile ? 0.05 : 0.08, ease: "power3.out",
+          scrollTrigger: { trigger: ".features-grid", start: stPct } });
 
       /* Tech tags */
-      gsap.fromTo(".tech-tag-anim", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, stagger: 0.06, ease: "back.out(2)", scrollTrigger: { trigger: ".tech-tags-row", start: "top 90%" } });
+      gsap.fromTo(".tech-tag-anim",
+        { scale: mobile ? 0.8 : 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: mobile ? 0.25 : 0.35, stagger: mobile ? 0.03 : 0.05, ease: "back.out(1.5)",
+          scrollTrigger: { trigger: ".tech-tags-row", start: "top 92%" } });
 
-      /* Feedback cards */
-      gsap.fromTo(".feedback-card", { y: 60, opacity: 0, rotateX: 8 }, { y: 0, opacity: 1, rotateX: 0, duration: 1, stagger: 0.2, ease: "power3.out", scrollTrigger: { trigger: ".feedback-section", start: "top 82%" } });
+      /* Feedback cards — no rotateX on mobile */
+      gsap.fromTo(".feedback-card",
+        { y: mobile ? 20 : 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: mobile ? 0.5 : 0.8, stagger: mobile ? 0.1 : 0.15, ease: "power3.out",
+          scrollTrigger: { trigger: ".feedback-section", start: stPct } });
 
       /* Marquee */
-      gsap.fromTo(".marquee-section", { opacity: 0 }, { opacity: 1, duration: 1, scrollTrigger: { trigger: ".marquee-section", start: "top 90%" } });
+      gsap.fromTo(".marquee-section", { opacity: 0 },
+        { opacity: 1, duration: dur, scrollTrigger: { trigger: ".marquee-section", start: "top 92%" } });
 
       /* Featured & reviews */
-      gsap.fromTo(".featured-card", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: "power3.out", scrollTrigger: { trigger: ".featured-card", start: "top 85%" } });
-      gsap.fromTo(".reviews-section-card", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power3.out", scrollTrigger: { trigger: ".reviews-section", start: "top 85%" } });
+      gsap.fromTo(".featured-card",
+        { y: mobile ? 20 : 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: dur, ease: "power3.out",
+          scrollTrigger: { trigger: ".featured-card", start: stPct } });
+      gsap.fromTo(".reviews-section-card",
+        { y: mobile ? 20 : 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: dur, ease: "power3.out",
+          scrollTrigger: { trigger: ".reviews-section", start: stPct } });
     }, rootRef);
     return () => ctx.revert();
   }, []);
 
-  /* ── Distribution bars ───────────────────── */
+  /* ── Distribution bars (desktop only, skip re-creation on mobile) ── */
   useEffect(() => {
     if (!rootRef.current) return;
+    if (isMobile.current) {
+      /* On mobile, just show bars instantly — no animation overhead */
+      document.querySelectorAll<HTMLElement>(".dist-bar").forEach((el) => { el.style.transform = "scaleX(1)"; });
+      return;
+    }
     const ctx = gsap.context(() => {
-      gsap.fromTo(".dist-bar", { scaleX: 0 }, { scaleX: 1, transformOrigin: "left", duration: 0.8, ease: "power3.out", stagger: 0.08 });
+      gsap.fromTo(".dist-bar", { scaleX: 0 },
+        { scaleX: 1, transformOrigin: "left", duration: 0.6, ease: "power3.out", stagger: 0.06 });
     }, rootRef);
     return () => ctx.revert();
   }, [distribution.total, distribution.avg]);
@@ -501,8 +542,8 @@ export default function Home() {
         <div className="bg-orb aurora-1 absolute -left-40 -top-40 h-[550px] w-[550px] rounded-full bg-violet-600/15 blur-[140px]" />
         <div className="bg-orb aurora-2 absolute -right-32 top-16 h-[600px] w-[600px] rounded-full bg-blue-500/12 blur-[140px]" />
         <div className="bg-orb aurora-3 absolute left-1/4 bottom-[-200px] h-[650px] w-[650px] rounded-full bg-cyan-500/10 blur-[140px]" />
-        <div className="bg-orb aurora-1 absolute right-1/5 top-1/2 h-[450px] w-[450px] rounded-full bg-fuchsia-500/8 blur-[120px]" />
-        <div className="bg-orb aurora-2 absolute left-1/2 top-1/4 h-[350px] w-[350px] rounded-full bg-indigo-400/6 blur-[100px]" />
+        <div className="bg-orb bg-orb-desktop aurora-1 absolute right-1/5 top-1/2 h-[450px] w-[450px] rounded-full bg-fuchsia-500/8 blur-[120px]" />
+        <div className="bg-orb bg-orb-desktop aurora-2 absolute left-1/2 top-1/4 h-[350px] w-[350px] rounded-full bg-indigo-400/6 blur-[100px]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.05),transparent_70%)]" />
         <div className="grid-pattern absolute inset-0 opacity-50" />
       </div>
