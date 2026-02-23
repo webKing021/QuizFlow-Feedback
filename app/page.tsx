@@ -1515,19 +1515,47 @@ export default function Home() {
                         {new Date(r.created_at).toLocaleDateString()}
                       </div>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-600 line-clamp-3">
-                      {r.experience}
-                    </p>
-                    {r.feature_requests && (
-                      <div className="mt-2 rounded-lg bg-violet-50 px-3 py-2">
-                        <div className="text-[10px] font-semibold uppercase text-violet-500">
-                          Feature Request
-                        </div>
-                        <p className="mt-0.5 text-xs text-slate-600 line-clamp-2">
-                          {r.feature_requests}
+                    {/* Reliability rating */}
+                    {r.reliability_rating > 0 && (
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                        <span className="font-medium text-slate-600">Reliability:</span>
+                        <StarsRow rating={Math.max(1, Math.min(5, r.reliability_rating))} />
+                      </div>
+                    )}
+
+                    {/* Experience */}
+                    {r.experience && (
+                      <div className="mt-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-wide text-indigo-400 mb-0.5">Experience</div>
+                        <p className="text-sm leading-6 text-slate-600 whitespace-pre-line">
+                          {r.experience}
                         </p>
                       </div>
                     )}
+
+                    {/* All optional detail fields */}
+                    {[
+                      { label: "Security Issues", value: r.security_issues },
+                      { label: "Bugs / Glitches", value: r.bugs_glitches },
+                      { label: "Database Issues", value: r.database_issues },
+                      { label: "Feature Request", value: r.feature_requests },
+                      { label: "UI / UX Feedback", value: r.ui_ux_feedback },
+                      { label: "Other Feedback", value: r.other_feedback },
+                    ]
+                      .filter((f) => f.value)
+                      .map((f) => (
+                        <div
+                          key={f.label}
+                          className="mt-2 rounded-lg bg-violet-50/60 px-3 py-2"
+                        >
+                          <div className="text-[10px] font-semibold uppercase tracking-wide text-violet-500">
+                            {f.label}
+                          </div>
+                          <p className="mt-0.5 text-xs leading-5 text-slate-600 whitespace-pre-line">
+                            {f.value}
+                          </p>
+                        </div>
+                      ))}
                   </div>
                 ))}
               </div>
