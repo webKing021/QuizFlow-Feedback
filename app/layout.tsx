@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrainFuel AI — Smart Notes. Smarter Prep. | LJ Innovation Village 2026",
+  title: "QuizFlow — Share Your Feedback | LJ College of Computer Application",
   description:
-    "Live feedback for BrainFuel AI project presentation at LJ Innovation Village 2026. Rate and review our AI-powered educational platform.",
+    "Help us build QuizFlow 2.0! Share your feedback about the QuizFlow Quiz Management System used at LJ College of Computer Application, Vastrapur, Ahmedabad.",
   icons: {
     icon: [{ url: "/icon.ico?v=3", type: "image/x-icon" }],
     shortcut: [{ url: "/icon.ico?v=3", type: "image/x-icon" }],
