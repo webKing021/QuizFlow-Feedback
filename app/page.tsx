@@ -1082,7 +1082,7 @@ export default function Home() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="hero-scroll absolute bottom-8 flex flex-col items-center gap-2">
+        <div className="hero-scroll mt-10 flex flex-col items-center gap-2">
           <span className="text-[9px] uppercase tracking-[0.25em] text-slate-400">
             Scroll
           </span>
